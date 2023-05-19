@@ -1,5 +1,5 @@
 from flask import Flask, request, abort
-from linebot.models import TextSendMessage
+from linebot.models import TextSendMessage, ImageSendMessage
 from linebot import LineBotApi
 import configparser
 import requests
@@ -54,7 +54,10 @@ def handle_message_event(event, linebot, cwbtoken):
         linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
     elif message == "雷達回波圖":
         picurl = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
-        linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
+        linebot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png",
+                                                                   preview_image_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
+                                                                   )
+                              )
     else:
         linebot.reply_message(event["replyToken"],TextSendMessage(text=message))
 
