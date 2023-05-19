@@ -1,5 +1,5 @@
 from flask import Flask, request, abort
-from linebot.models import TextSendMessage
+from linebot.models import TextSendMessage, ImageSendMessage
 from linebot import LineBotApi
 import configparser
 import requests
@@ -52,6 +52,11 @@ def handle_message_event(event, linebot, cwbtoken):
         result = query_weather(cwbtoken)
         texts = "現在溫度: {} \n天氣狀態: {} \n濕度: {} \n風速: {} \n風向: {}".format(result[0], result[1], result[2], result[3], result[4])
         linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
+    elif message == "雷達回波圖":
+        linebot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png",
+                                                                   preview_image_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
+                                                                   )
+                              )
     else:
         linebot.reply_message(event["replyToken"],TextSendMessage(text=message))
 
