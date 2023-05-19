@@ -1,0 +1,2 @@
+# NCUE_weather_linebot
+LINE機器人透過中樣氣象局資料，回報彰師大當地天氣
