@@ -54,8 +54,8 @@ def handle_message_event(event, linebot, cwbtoken):
         linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
     elif message == "雷達回波圖":
         picurl = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
-        linebot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png",
-                                                                   preview_image_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
+        linebot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = picurl,
+                                                                   preview_image_url = picurl
                                                                    )
                               )
     else:
@@ -75,7 +75,7 @@ def query_weather(token):
              }
     response = requests.get("https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001", params = params)
     datas = json.loads(response.text)
-    print(datas)
+
     for data in datas["records"]["location"][0]["weatherElement"]:
         if data["elementName"] == "TEMP":
             # 溫度 (°C)
