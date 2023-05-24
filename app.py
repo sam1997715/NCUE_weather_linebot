@@ -54,7 +54,7 @@ def handle_message_event(event, weatherbot, tokens):
 
     if message == "現在彰師大天氣":
         results = query_weather(tokens[0])
-        texts = "現在溫度: {} \n天氣狀態: {} \n濕度: {}\n風速: {} \n風向: {}".format(results[0], results[1], results[2], results[3], results[4])
+        texts = "現在溫度: {}\n天氣狀態: {}\n濕度: {}\n紫外線指數: {}\n風速: {} \n風向: {}".format(results[0], results[1], results[2], results[3], results[4], result[5])
         weatherbot.reply_message(event["replyToken"],TextSendMessage(text=texts))
 
     elif message == "彰師大兩天天氣預報":
