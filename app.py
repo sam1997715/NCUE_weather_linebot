@@ -6,6 +6,7 @@ import requests
 import json
 import base64
 import hashlib, hmac
+import datetime
 
 
 app = Flask(__name__)
@@ -19,7 +20,7 @@ def webhook():
     tokens = [config.get("API", "cwbtoken"),
               config.get("API", "epatoken")]
 
-    
+
     linebot = LineBotApi(config.get("API", "bottoken"))
 
     body = request.get_data(as_text=True)
@@ -55,6 +56,14 @@ def handle_message_event(event, linebot, tokens):
         results = query_weather(tokens[0])
         texts = "現在溫度: {} \n天氣狀態: {} \n濕度: {}\n風速: {} \n風向: {}".format(results[0], results[1], results[2], results[3], results[4])
         linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
+    elif message == "彰師大天氣預報":
+        results = query_forecast(tokens[0])
+        # {時間:描述}
+        texts = ""
+        for index in results:
+            texts += "{}: {}\n".format(index, results[index])
+        texts = texts[:-1]  # 去除最後換行符號
+        linebot.reply_message(event["replyToken"], TextSendMessage(text=texts))
     elif message == "雷達回波圖":
         linebot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png",
                                                                    preview_image_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
@@ -62,7 +71,7 @@ def handle_message_event(event, linebot, tokens):
                              )
     elif message == "現在彰師大空氣":
         results = query_airquality(tokens[1])
-        texts = "觀測時間: {} \nAQI: {} \nPM2.5: {} \nPM10: {}".format(results[0], results[1], results[2], results[3])
+        texts = "觀測時間: {} \n空氣品質指標(AQI): {} \n空氣{} \nPM2.5: {} \nPM10: {}".format(results[0], results[1], results[2], results[3], results[4])
         linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
     else:
         linebot.reply_message(event["replyToken"],TextSendMessage(text="無法處理您的訊息: " + message))
@@ -77,7 +86,7 @@ def handle_unfollow_event(event, linebot):
 
 def query_weather(token):
     params = {"Authorization" : token,
-              "locationName" : "彰師大"	# 彰師大
+              "locationName" : "彰師大"	# 直接輸入中文測站名稱
              }
     response = requests.get("https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001", params = params)
     datas = json.loads(response.text)
@@ -141,14 +150,62 @@ def query_airquality(token):
               "limit": "1"}     # 只顯示1筆
     response = requests.get("https://data.epa.gov.tw/api/v2/aqx_p_432", params = params)
     queryResult = json.loads(response.text)
-    
+
     time = queryResult["records"][0]["publishtime"]                  # 觀測時刻
     aqi = queryResult["records"][0]["aqi"]                           # AQI指數
-    pm25 = queryResult["records"][0]["pm2.5"] + " μg/m3"            # PM2.5
-    pm10 = queryResult["records"][0]["pm10"] + " μg/m3"             # PM10
+    pm25 = queryResult["records"][0]["pm2.5"] + " μg/m^3"           # PM2.5
+    pm10 = queryResult["records"][0]["pm10"] + " μg/m^3"            # PM10
 
-    return [time, aqi, pm25, pm10]
+    if int(aqi) <= 50:
+        comment = "良好(綠色)"
+    elif int(aqi) <= 100:
+        comment = "普通(黃色)"
+    elif int(aqi) <= 150:
+        comment = "對敏感族群不良(橘色)"
+    elif int(aqi) <= 200:
+        comment = "對所有族群不良(紅色)"
+    elif int(aqi) <= 300:
+        comment = "非常不良(紫色)"
+    elif int(aqi) <= 500:
+        comment = "有害(褐紅)"
+
+    return [time, aqi, comment, pm25, pm10]
+
+def query_forecast(token):
+    params = {"Authorization": token,
+              "offset": "6",        # 彰化市是第31個
+              "limit": "1",         # 只顯示1個
+              "elementName": "WeatherDescription",  # 直接回傳預報描述
+              "sort": "time"}
+    response = requests.get("https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-017", params=params)
+    datas = json.loads(response.text)
+    forecasts = datas["records"]["locations"][0]["location"][0]["weatherElement"][0]["time"]
+    casts = {}
+    for cast in forecasts:
+        timestamp = cast["startTime"]
+        casts.update({timestamp:cast["elementValue"][0]["value"]})
+
+    return casts
+
+def convert_dayformat(time):
+    datetimeObj = datetime.datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+    wday = datetimeObj.weekday()
+    if wday == 0:
+        weekday = "一"
+    elif wday == 1:
+        weekday = "二"
+    elif wday == 2:
+        weekday = "三"
+    elif wday == 3:
+        weekday = "四"
+    elif wday == 4:
+        weekday = "五"
+    elif wday == 5:
+        weekday = "六"
+    elif wday == 6:
+        weekday = "日"
+
+    return "{}/{}({}) {}時".format(datetimeObj.month, datetimeObj.day, wday, datetimeObj.hour)
 
 if __name__ == '__main__':
-    app.run(port=8443,
-            debug=True)
+    app.run(port=8443)
