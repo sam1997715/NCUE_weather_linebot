@@ -21,7 +21,7 @@ def webhook():
               config.get("API", "epatoken")]
 
 
-    linebot = LineBotApi(config.get("API", "bottoken"))
+    weatherbot = LineBotApi(config.get("API", "bottoken"))
 
     body = request.get_data(as_text=True)
     hash = hmac.new(channel_secret.encode('utf-8'), body.encode('utf-8'), hashlib.sha256).digest()
@@ -39,42 +39,47 @@ def webhook():
     for event in payload['events']:
         # 依照事件型態做處理
         if event['type'] == 'message':
-            handle_message_event(event, linebot, tokens)
+            handle_message_event(event, weatherbot, tokens)
         elif event['type'] == 'follow':
-            handle_follow_event(event, linebot)
+            handle_follow_event(event, weatherbot)
         elif event['type'] == 'unfollow':
-            handle_unfollow_event(event, linebot)
+            handle_unfollow_event(event, weatherbot)
 
 
     return 'OK'
 
-def handle_message_event(event, linebot, tokens):
+def handle_message_event(event, weatherbot, tokens):
     # 處理收到訊息
     message = event["message"]["text"]
 
     if message == "現在彰師大天氣":
         results = query_weather(tokens[0])
         texts = "現在溫度: {} \n天氣狀態: {} \n濕度: {}\n風速: {} \n風向: {}".format(results[0], results[1], results[2], results[3], results[4])
-        linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
-    elif message == "彰師大天氣預報":
-        results = query_forecast(tokens[0])
+        weatherbot.reply_message(event["replyToken"],TextSendMessage(text=texts))
+    elif message == "彰師大兩天天氣預報":
+        results = query_2dayforecast(tokens[0])
         # {時間:描述}
         texts = ""
         for index in results:
             texts += "{}: {}\n".format(index, results[index])
         texts = texts[:-1]  # 去除最後換行符號
-        linebot.reply_message(event["replyToken"], TextSendMessage(text=texts))
+        weatherbot.reply_message(event["replyToken"], TextSendMessage(text=texts))
+    elif message == "彰師大一週天氣預報":
+        results = query_weekforecast(tokens[0])
+
+        texts = ""
+        weatherbot.reply_message(event["replyToken"], TextSendMessage(text=texts))
     elif message == "雷達回波圖":
-        linebot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png",
+        weatherbot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png",
                                                                    preview_image_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
                                                                    )
                              )
     elif message == "現在彰師大空氣":
         results = query_airquality(tokens[1])
         texts = "觀測時間: {} \n空氣品質指標(AQI): {} \n空氣{} \nPM2.5: {} \nPM10: {}".format(results[0], results[1], results[2], results[3], results[4])
-        linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
+        weatherbot.reply_message(event["replyToken"],TextSendMessage(text=texts))
     else:
-        linebot.reply_message(event["replyToken"],TextSendMessage(text="無法處理您的訊息: " + message))
+        weatherbot.reply_message(event["replyToken"],TextSendMessage(text="無法處理您的訊息: " + message))
 
 def handle_follow_event(event, linebot):
     # 處理開始關注
@@ -89,7 +94,7 @@ def query_weather(token):
               "locationName" : "彰師大"	# 直接輸入中文測站名稱
              }
     response = requests.get("https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001", params = params)
-    datas = json.loads(response.text)
+    datas = response.json()
 
     for data in datas["records"]["location"][0]["weatherElement"]:
         if data["elementName"] == "TEMP":
@@ -171,7 +176,7 @@ def query_airquality(token):
 
     return [time, aqi, comment, pm25, pm10]
 
-def query_forecast(token):
+def query_2dayforecast(token):
     params = {"Authorization": token,
               "offset": "6",        # 彰化市是第31個
               "limit": "1",         # 只顯示1個
@@ -182,12 +187,12 @@ def query_forecast(token):
     forecasts = datas["records"]["locations"][0]["location"][0]["weatherElement"][0]["time"]
     casts = {}
     for cast in forecasts:
-        timestamp = convert_dayformat(cast["startTime"])
+        timestamp = convert_dayformat(cast["startTime"], period=3)
         casts.update({timestamp:cast["elementValue"][0]["value"]})
 
     return casts
 
-def convert_dayformat(time):
+def convert_dayformat(time, period=3):
     datetimeObj = datetime.datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
     wday = datetimeObj.weekday()
     if wday == 0:
@@ -202,11 +207,38 @@ def convert_dayformat(time):
         weekday = "五"
     elif wday == 5:
         weekday = "六"
-    elif wday == 6:
+    else:   # wday == 6
         weekday = "日"
 
-    return "{}/{}({}) {}:00".format(datetimeObj.month, datetimeObj.day, weekday, datetimeObj.hour)
+    if period == 3:
+        return "{}/{}({}) {}:00".format(datetimeObj.month, datetimeObj.day, weekday, datetimeObj.hour)
+    else:
+        hr = datetimeObj.hour
+        if 0 <= hr <= 6:
+            daytime = "夜晚"
+        elif 6 < hr <= 12:
+            daytime = "白天"
+        elif 12 < hr <= 18:
+            daytime = "下午"
+        elif 18 < hr <= 24:
+            daytime = "晚上"
+        return "{}/{}({}){}".format(datetimeObj.month, datetimeObj.day, weekday, daytime)
 
+def query_weekforecast(token):
+    params = {"Authorization": token,
+              "offset": "6",        # 彰化市是第31個
+              "limit": "1",         # 只顯示1個
+              "elementName": "WeatherDescription",  # 直接回傳預報描述
+              "sort": "time"}
+    response = requests.get("https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-019", params = params)
+    datas = response.json()
+    forecasts = datas["records"]["locations"][0]["location"][0]["weatherElement"][0]["time"]
+    casts = {}
+    for cast in forecasts:
+        timestamp = convert_dayformat(cast["startTime"], period=12)
+        casts.update({timestamp: cast["elementValue"][0]["value"]})
+
+    return casts
 if __name__ == '__main__':
     app.run(port=8443,
             debug=True)
