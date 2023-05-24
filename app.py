@@ -205,7 +205,7 @@ def convert_dayformat(time):
     elif wday == 6:
         weekday = "日"
 
-    return "{}/{}({}) {}時".format(datetimeObj.month, datetimeObj.day, wday, datetimeObj.hour)
+    return "{}/{}({}) {}:00".format(datetimeObj.month, datetimeObj.day, weekday, datetimeObj.hour)
 
 if __name__ == '__main__':
     app.run(port=8443,
