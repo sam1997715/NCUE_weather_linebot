@@ -233,13 +233,13 @@ def convert_dayformat(time, period=3):
         return "{}/{}({}){}".format(datetimeObj.month, datetimeObj.day, weekday, daytime)
 
 def convert_toemoji(desc):
-    sdesc = desc.split("。")
+    sdesc = desc.split("。")[:-1]
     newDesc = sdesc[0] + "，" + sdesc[-3] + "\n"                                              # 天氣，體感
     newDesc += "🌡:" + sdesc[-4].replace("溫度攝氏","").replace("至", "~").replace("度", "°C") + "\n"   # 溫度
-    if "降雨機率" in sdesc[1]:
-        newDesc += "☂:" + sdesc[1].replace("降雨機率 ", "") + "%" + "\n"                              # 降雨機率
+    if len(sdesc) == 6:
+        newDesc += "☂:" + sdesc[1].replace("降雨機率 ", "") + "\n"                              # 降雨機率
     else:
-        newDesc += "☂:氣象局未提供\n"
+        newDesc += "☂:氣象局未提供降雨機率\n"
     newDesc += sdesc[-2].replace("每秒", "").replace("公尺", "m/s") + "\n"
     newDesc += "濕度:" + sdesc[-1].replace("相對溼度", "")
 
