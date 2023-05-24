@@ -221,13 +221,13 @@ def convert_dayformat(time, period=3):
         return "{}/{}({}) {}:00".format(datetimeObj.month, datetimeObj.day, weekday, datetimeObj.hour)
     else:
         hr = datetimeObj.hour
-        if 0 <= hr <= 6:
+        if 0 <= hr < 6:
             daytime = "夜晚"
-        elif 6 < hr <= 12:
+        elif 6 <= hr < 12:
             daytime = "白天"
-        elif 12 < hr <= 18:
+        elif 12 <= hr < 18:
             daytime = "下午"
-        elif 18 < hr <= 24:
+        elif 18 <= hr <= 24:
             daytime = "晚上"
         return "{}/{}({}){}".format(datetimeObj.month, datetimeObj.day, weekday, daytime)
 
