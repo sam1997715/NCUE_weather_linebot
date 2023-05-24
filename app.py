@@ -56,6 +56,7 @@ def handle_message_event(event, weatherbot, tokens):
         results = query_weather(tokens[0])
         texts = "現在溫度: {} \n天氣狀態: {} \n濕度: {}\n風速: {} \n風向: {}".format(results[0], results[1], results[2], results[3], results[4])
         weatherbot.reply_message(event["replyToken"],TextSendMessage(text=texts))
+
     elif message == "彰師大兩天天氣預報":
         results = query_2dayforecast(tokens[0])
         # {時間:描述}
@@ -64,16 +65,22 @@ def handle_message_event(event, weatherbot, tokens):
             texts += "{}: {}\n".format(index, results[index])
         texts = texts[:-1]  # 去除最後換行符號
         weatherbot.reply_message(event["replyToken"], TextSendMessage(text=texts))
+
     elif message == "彰師大一週天氣預報":
         results = query_weekforecast(tokens[0])
 
         texts = ""
+        for index in results:
+            texts += "{}: {}\n".format(index, results[index])
+        texts = texts[:-1]  # 去除最後換行符號
         weatherbot.reply_message(event["replyToken"], TextSendMessage(text=texts))
+
     elif message == "雷達回波圖":
         weatherbot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png",
                                                                    preview_image_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
                                                                    )
                              )
+
     elif message == "現在彰師大空氣":
         results = query_airquality(tokens[1])
         texts = "觀測時間: {} \n空氣品質指標(AQI): {} \n空氣{} \nPM2.5: {} \nPM10: {}".format(results[0], results[1], results[2], results[3], results[4])
