@@ -182,7 +182,7 @@ def query_forecast(token):
     forecasts = datas["records"]["locations"][0]["location"][0]["weatherElement"][0]["time"]
     casts = {}
     for cast in forecasts:
-        timestamp = cast["startTime"]
+        timestamp = convert_dayformat(cast["startTime"])
         casts.update({timestamp:cast["elementValue"][0]["value"]})
 
     return casts
@@ -208,4 +208,5 @@ def convert_dayformat(time):
     return "{}/{}({}) {}時".format(datetimeObj.month, datetimeObj.day, wday, datetimeObj.hour)
 
 if __name__ == '__main__':
-    app.run(port=8443)
+    app.run(port=8443,
+            debug=True)
