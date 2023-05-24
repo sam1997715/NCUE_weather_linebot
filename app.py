@@ -119,8 +119,20 @@ def query_weather(token):
         elif data["elementName"] == "WDIR":
             # 風向 (m/s)
             wdir = convert_winddir(data["elementValue"])
+        elif data["elementName"] == "H_UVI":
+            uvi = (lambda b:"氣象測站維護中" if b=="-99" else b)(data["elementValue"])
+            if 0 <= int(uvi) <= 2:
+                uvi += "(低量)"
+            elif 3 <= int(uvi) <= 5:
+                uvi += "(中量)"
+            elif 6 <= int(uvi) <= 7:
+                uvi += "(高量)"
+            elif 8 <= int(uvi) <= 10:
+                uvi += "(過量)"
+            elif 11 <= int(uvi):
+                uvi += "(危險)"
 
-    return (temp, stat, humd, wspd, wdir)
+    return (temp, stat, humd, uvi, wspd, wdir)
 
 def convert_winddir(angle):
     '''
