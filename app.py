@@ -16,7 +16,10 @@ def webhook():
     config.read('config.ini')
 
     channel_secret = config.get("API", "secret")
-    cwbtoken = config.get("API", "cwbtoken")
+    tokens = [config.get("API", "cwbtoken"),
+              config.get("API", "epatoken")]
+
+    
     linebot = LineBotApi(config.get("API", "bottoken"))
 
     body = request.get_data(as_text=True)
@@ -35,7 +38,7 @@ def webhook():
     for event in payload['events']:
         # 依照事件型態做處理
         if event['type'] == 'message':
-            handle_message_event(event, linebot, cwbtoken)
+            handle_message_event(event, linebot, tokens)
         elif event['type'] == 'follow':
             handle_follow_event(event, linebot)
         elif event['type'] == 'unfollow':
@@ -44,22 +47,24 @@ def webhook():
 
     return 'OK'
 
-def handle_message_event(event, linebot, cwbtoken):
+def handle_message_event(event, linebot, tokens):
     # 處理收到訊息
     message = event["message"]["text"]
 
-    if message == "今天彰師大天氣如何":
-        result = query_weather(cwbtoken)
-        texts = "現在溫度: {} \n天氣狀態: {} \n濕度: {} \n風速: {} \n風向: {}".format(result[0], result[1], result[2], result[3], result[4])
+    if message == "現在彰師大天氣":
+        results = query_weather(tokens[0])
+        texts = "現在溫度: {} \n天氣狀態: {} \n濕度: {}\n風速: {} \n風向: {}".format(results[0], results[1], results[2], results[3], results[4])
         linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
     elif message == "雷達回波圖":
-        picurl = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
-        linebot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = picurl,
-                                                                   preview_image_url = picurl
+        linebot.reply_message(event["replyToken"],ImageSendMessage(original_content_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png",
+                                                                   preview_image_url = "https://cwbopendata.s3.ap-northeast-1.amazonaws.com/MSC/O-A0058-003.png"
                                                                    )
-                              )
+                             )
+    elif message == "現在彰師大空氣":
+        result = query_airquality(tokens[1])
+        texts = "觀測時間: {} \nAQI: {} \nPM2.5: {} \nPM10: {}".format(results[0], results[1], results[2], results[3])
     else:
-        linebot.reply_message(event["replyToken"],TextSendMessage(text=message))
+        linebot.reply_message(event["replyToken"],TextSendMessage(text="無法處理您的訊息: " + message))
 
 def handle_follow_event(event, linebot):
     # 處理開始關注
@@ -75,7 +80,7 @@ def query_weather(token):
              }
     response = requests.get("https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001", params = params)
     datas = json.loads(response.text)
-
+    print(datas)
     for data in datas["records"]["location"][0]["weatherElement"]:
         if data["elementName"] == "TEMP":
             # 溫度 (°C)
@@ -128,6 +133,20 @@ def convert_winddir(angle):
         return "氣象測站維護中"
     else:
         return "未知"
+
+def query_airquality(token):
+    params = {"api_key": token,
+              "offset": "31",   # 彰化市是第31個
+              "limit": "1"}     # 只顯示1筆
+    response = requests.get("https://data.epa.gov.tw/api/v2/aqx_p_432", params = params)
+    queryResult = json.loads(response.text)
+    
+    time = queryResult["records"][0]["publishtime"]                  # 觀測時刻
+    aqi = queryResult["records"][0]["aqi"]                           # AQI指數
+    pm25 = queryResult["records"][0]["pm2.5"] + " μg/m3"            # PM2.5
+    pm10 = queryResult["records"][0]["pm10"] + " μg/m3"             # PM10
+
+    return [time, aqi, pm25, pm10]
 
 if __name__ == '__main__':
     app.run(port=8443,
