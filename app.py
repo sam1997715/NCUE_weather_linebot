@@ -61,7 +61,7 @@ def handle_message_event(event, linebot, tokens):
                                                                    )
                              )
     elif message == "現在彰師大空氣":
-        result = query_airquality(tokens[1])
+        results = query_airquality(tokens[1])
         texts = "觀測時間: {} \nAQI: {} \nPM2.5: {} \nPM10: {}".format(results[0], results[1], results[2], results[3])
     else:
         linebot.reply_message(event["replyToken"],TextSendMessage(text="無法處理您的訊息: " + message))
@@ -80,7 +80,7 @@ def query_weather(token):
              }
     response = requests.get("https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001", params = params)
     datas = json.loads(response.text)
-    print(datas)
+
     for data in datas["records"]["location"][0]["weatherElement"]:
         if data["elementName"] == "TEMP":
             # 溫度 (°C)
