@@ -195,7 +195,8 @@ def query_2dayforecast(token):
     casts = {}
     for cast in forecasts:
         timestamp = convert_dayformat(cast["startTime"], period=3)
-        casts.update({timestamp:cast["elementValue"][0]["value"]})
+        descri = cast["elementValue"][0]["value"]
+        casts.update({timestamp:descri})
 
     return casts
 
@@ -231,6 +232,16 @@ def convert_dayformat(time, period=3):
             daytime = "晚上"
         return "{}/{}({}){}".format(datetimeObj.month, datetimeObj.day, weekday, daytime)
 
+def convert_toemoji(desc):
+    sdesc = desc.split("。")
+    newDesc = "概況:" + sdesc[0] + "，" + sdesc[3] + "\n"                                              # 天氣，體感
+    newDesc += "🌡:" + sdesc[2].replace("溫度攝氏","").replace("至", "~").replace("度", "°C") + "\n"   # 溫度
+    newDesc += "☂:" + sdesc[1].replace("降雨機率 ", "") + "%" + "\n"                                 # 降雨機率
+    newDesc += sdesc[4] + "\n"
+    newDesc += "濕度:" + sdesc[5] + "%"
+
+    return newDesc
+
 def query_weekforecast(token):
     params = {"Authorization": token,
               "offset": "6",        # 彰化市是第31個
@@ -243,7 +254,8 @@ def query_weekforecast(token):
     casts = {}
     for cast in forecasts:
         timestamp = convert_dayformat(cast["startTime"], period=12)
-        casts.update({timestamp: cast["elementValue"][0]["value"]})
+        descri = cast["elementValue"][0]["value"]
+        casts.update({timestamp:descri})
 
     return casts
 if __name__ == '__main__':
