@@ -195,7 +195,7 @@ def query_2dayforecast(token):
     casts = {}
     for cast in forecasts:
         timestamp = convert_dayformat(cast["startTime"], period=3)
-        descri = cast["elementValue"][0]["value"]
+        descri = convert_toemoji(cast["elementValue"][0]["value"])
         casts.update({timestamp:descri})
 
     return casts
@@ -254,7 +254,7 @@ def query_weekforecast(token):
     casts = {}
     for cast in forecasts:
         timestamp = convert_dayformat(cast["startTime"], period=12)
-        descri = cast["elementValue"][0]["value"]
+        descri = convert_toemoji(cast["elementValue"][0]["value"])
         casts.update({timestamp:descri})
 
     return casts
