@@ -63,6 +63,7 @@ def handle_message_event(event, linebot, tokens):
     elif message == "現在彰師大空氣":
         results = query_airquality(tokens[1])
         texts = "觀測時間: {} \nAQI: {} \nPM2.5: {} \nPM10: {}".format(results[0], results[1], results[2], results[3])
+        linebot.reply_message(event["replyToken"],TextSendMessage(text=texts))
     else:
         linebot.reply_message(event["replyToken"],TextSendMessage(text="無法處理您的訊息: " + message))
 
