@@ -241,7 +241,7 @@ def convert_toemoji(desc):
     else:
         newDesc += "☂:氣象局未提供降雨機率\n"
     newDesc += sdesc[-2].replace(" ", "").replace("每秒", "").replace("公尺", "m/s") + "\n"
-    newDesc += "濕度:" + sdesc[-1].replace("相對溼度", "") + "\n"
+    newDesc += "濕度:" + sdesc[-1].replace("相對濕度", "") + "\n"
     newDesc += "---\n"
 
     return newDesc
