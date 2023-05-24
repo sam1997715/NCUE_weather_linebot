@@ -236,7 +236,10 @@ def convert_toemoji(desc):
     sdesc = desc.split("。")
     newDesc = "概況:" + sdesc[0] + "，" + sdesc[3] + "\n"                                              # 天氣，體感
     newDesc += "🌡:" + sdesc[2].replace("溫度攝氏","").replace("至", "~").replace("度", "°C") + "\n"   # 溫度
-    newDesc += "☂:" + sdesc[1].replace("降雨機率 ", "") + "%" + "\n"                                 # 降雨機率
+    if "降雨機率" in sdesc[1]:
+        newDesc += "☂:" + sdesc[1].replace("降雨機率 ", "") + "%" + "\n"                              # 降雨機率
+    else:
+        newDesc += "☂:氣象局未提供\n"
     newDesc += sdesc[4] + "\n"
     newDesc += "濕度:" + sdesc[5] + "%"
 
