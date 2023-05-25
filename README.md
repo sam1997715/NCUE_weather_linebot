@@ -9,7 +9,8 @@ LINE機器人透過中央氣象局資料，回報彰師大當地天氣
 1. 需事先安裝 [Python](https://www.python.org/)，並透過 <code>pip install -r requirements.txt</code> 安裝所需的套件。
 2. 需事先申請與架設好 LINE Bot 操作功能。
     + 需要事先設定好 **Webhook** ，以接受使用者傳送的資訊(需使用HTTPS協定)。
-    + 需要事先設定好 **圖文選單**，並在對應的區域設定傳送文字
+    + 需要事先設定好 **圖文選單**，並在對應的區域設定傳送文字。
+      可以在[LINE Official Account](https://manager.line.biz)找到，於 主頁>聊天室相關>圖文選單，建立以下功能
       1. 文字 - 雷達回波圖
       2. 文字 - 彰師大兩天天氣預報
       3. 文字 - 現在彰師大空氣
