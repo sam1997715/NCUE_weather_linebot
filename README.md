@@ -52,3 +52,14 @@ LINE機器人透過中央氣象局資料，回報彰師大當地天氣
    + 雷達回波圖: 回傳中央氣象局白底台灣附近地區的地圖，並由藍至紅表示降雨強度。
 
 <img decoding="async" src="https://github.com/sam1997715/NCUE_weather_linebot/blob/main/design/LINE%E5%B0%8D%E8%A9%B1%E6%A1%86.png?raw=true" height="20%"></img>
+
+---
+## 補充說明
+### 雷達回波
+  以中央氣象局的雷達回波色階標示來說，當你看到要去的目的地顯示是沒有任何顏色的，恭喜你，非常適合出門，完全不會下雨；如果是藍色，可能要注意空氣會有點潮濕；看到綠色的話，就要準備雨具了，會有小小降雨情形；看到呈現黃色的區域，是一般降雨的程度，可以多安排室內活動；若是紅色或紫色的區域，雨勢加劇，還是乖乖待在家，才不用淋成落湯雞。
+  
+  提醒你，雷達回波圖的色階標示可能不同，請以各圖所標之色階或dBZ數值為準。
+  
+  <img decoding="async" src="https://github-production-user-asset-6210df.s3.amazonaws.com/69688053/240967042-883ef4b5-d86d-4739-8002-5793c129332b.png" height="20%"></img>
+  
+  > 以上說明引用自[中央氣象局官方說明](https://south.cwb.gov.tw/inner/wbIg1572340584AuPg)
