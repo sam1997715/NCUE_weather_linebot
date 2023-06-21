@@ -277,5 +277,5 @@ def query_weekforecast(token):
 
     return casts
 if __name__ == '__main__':
-    app.run(port=8443,
+    app.run(port=4040,
             debug=True)
